@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moodify – Your Daily Emotion Dashboard</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --dark-bg: #1a1a2e;
+            --light-bg: #f5f5f5;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: #e0e0e0;
+            --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --neon-glow: 0 0 20px rgba(102, 126, 234, 0.8);
+        }
+
+        [data-theme="light"] {
+            --dark-bg: #f5f5f5;
+            --light-bg: #1a1a2e;
+            --glass-bg: rgba(255, 255, 255, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --text-primary: #1a1a2e;
+            --text-secondary: #333333;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--dark-bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            transition: all 0.3s ease;
+        }
+
+        /* Background Image */
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -2;
+            transition: opacity 1s ease-in-out;
+        }
+
+        .bg-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(26, 26, 46, 0.8) 0%, rgba(26, 26, 46, 0.4) 100%);
+            z-index: -1;
+            transition: all 0.5s ease;
+        }
+
+        [data-theme="light"] .bg-overlay {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.4) 100%);
+        }
+
+        /* Header */
+        header {
+            padding: 2rem 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .site-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 10px rgba(102, 126, 234, 0.5)); }
+            to { filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.8)); }
+        }
+
+        /* Theme Toggle */
+        .theme-toggle {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+        }
+
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Main Content */
+        main {
+            padding: 2rem 0;
+            min-height: calc(100vh - 200px);
+            position: relative;
+            z-index: 5;
+        }
+
+        /* Glass Card */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mood Buttons */
+        .mood-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            margin: 2rem 0;
+        }
+
+        .mood-btn {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 2px solid var(--glass-border);
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mood-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .mood-btn:hover::before {
+            left: 100%;
+        }
+
+        .mood-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+            border-color: rgba(102, 126, 234, 0.6);
+        }
+
+        .mood-btn.active {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            box-shadow: var(--neon-glow);
+        }
+
+        /* Quote Card */
+        .quote-card {
+            text-align: center;
+            padding: 2rem;
+            margin: 2rem 0;
+        }
+
+        .quote-text {
+            font-size: 1.5rem;
+            font-weight: 300;
+            font-style: italic;
+            margin-bottom: 1rem;
+            line-height: 1.6;
+            animation: fadeIn 1s ease-out;
+        }
+
+        .quote-author {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            animation: fadeIn 1.2s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Weather Card */
+        .weather-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .weather-info {
+            text-align: center;
+        }
+
+        .weather-temp {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .weather-desc {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+        }
+
+        .weather-icon {
+            font-size: 3rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Personal Message */
+        .personal-message {
+            font-size: 1.3rem;
+            text-align: center;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+            border-radius: 15px;
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+
+        /* Footer */
+        footer {
+            background: var(--primary-gradient);
+            padding: 2rem 0;
+            text-align: center;
+            margin-top: 3rem;
+        }
+
+        .social-icons {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .social-icon {
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .social-icon:hover {
+            transform: translateY(-5px);
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.8));
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .site-title {
+                font-size: 2rem;
+            }
+            
+            .mood-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 1rem;
+            }
+            
+            .quote-text {
+                font-size: 1.2rem;
+            }
+            
+            .weather-temp {
+                font-size: 2rem;
+            }
+        }
+
+        /* Smooth Transitions */
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .slide-up {
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* City Badge */
+        .city-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border-radius: 20px;
+            padding: 0.3rem 0.8rem;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body data-theme="dark">
+    <!-- Background Image -->
+    <div class="bg-image" id="bgImage"></div>
+    <div class="bg-overlay"></div>
+
+    <!-- Header -->
+    <header class="container">
+        <h1 class="site-title text-center">Moodify – Your Daily Emotion Dashboard</h1>
+        <div class="theme-toggle" id="themeToggle">
+            <i class="fas fa-moon" id="themeIcon"></i>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <!-- Mood Selection -->
+        <section class="glass-card">
+            <h2 class="text-center mb-4">How are you feeling today?</h2>
+            <div class="mood-buttons">
+                <button class="mood-btn" data-mood="happy">
+                    <span>😊 Happy</span>
+                </button>
+                <button class="mood-btn" data-mood="calm">
+                    <span>🧘‍♂️ Calm</span>
+                </button>
+                <button class="mood-btn" data-mood="focused">
+                    <span>💼 Focused</span>
+                </button>
+                <button class="mood-btn" data-mood="sad">
+                    <span>😢 Sad</span>
+                </button>
+                <button class="mood-btn" data-mood="energetic">
+                    <span>⚡ Energetic</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Personal Message -->
+        <section id="personalMessage" class="glass-card personal-message" style="display: none;">
+            <p id="messageText"></p>
+        </section>
+
+        <!-- Quote Card -->
+        <section id="quoteCard" class="glass-card quote-card" style="display: none;">
+            <div id="quoteContent">
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Weather Card -->
+        <section id="weatherCard" class="glass-card weather-card" style="display: none;">
+            <div id="weatherContent">
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p class="mb-0">Made with 💙 by Syed Ali Hamza</p>
+            <div class="social-icons">
+                <a href="https://github.com" target="_blank" class="social-icon">
+                    <i class="fab fa-github"></i>
+                </a>
+                <a href="https://linkedin.com" target="_blank" class="social-icon">
+                    <i class="fab fa-linkedin"></i>
+                </a>
+                <a href="mailto:contact@example.com" class="social-icon">
+                    <i class="fas fa-envelope"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Configuration
+        const UNSPLASH_ACCESS_KEY = 'YOUR_UNSPLASH_ACCESS_KEY'; // Replace with your Unsplash API key
+        const ZEN_QUOTES_API = 'https://zenquotes.io/api/random';
+        const OPENWEATHER_API_KEY = 'YOUR_OPENWEATHER_API_KEY'; // Replace with your OpenWeather API key
+        const DEFAULT_CITY = 'Karachi,PK'; // Changed to Karachi, Pakistan
+        const USER_NAME = 'Ali'; // Can be made dynamic
+
+        // Mood configurations
+        const moodConfigs = {
+            happy: {
+                query: 'happy joyful sunshine',
+                messages: [
+                    `Hey ${USER_NAME}, since you're feeling 😊 happy, keep spreading that positive energy!`,
+                    `Great to see you're happy, ${USER_NAME}! Your joy is contagious!`,
+                    `${USER_NAME}, your happiness lights up the world! Keep shining!`
+                ],
+                gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)'
+            },
+            calm: {
+                query: 'calm peaceful meditation',
+                messages: [
+                    `Hey ${USER_NAME}, since you're feeling 🧘‍♂️ calm, embrace this peaceful moment.`,
+                    `Your calmness is your superpower, ${USER_NAME}. Stay centered.`,
+                    `${USER_NAME}, in stillness you find strength. Enjoy this tranquility.`
+                ],
+                gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+            },
+            focused: {
+                query: 'focused productivity workspace',
+                messages: [
+                    `Hey ${USER_NAME}, since you're feeling 💼 focused, here's your daily boost!`,
+                    `Your focus today will create your tomorrow, ${USER_NAME}.`,
+                    `${USER_NAME}, you're in the zone! Channel this energy into greatness.`
+                ],
+                gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)'
+            },
+            sad: {
+                query: 'hopeful sunrise comfort',
+                messages: [
+                    `Hey ${USER_NAME}, it's okay to feel 😢 sad. Tomorrow brings new possibilities.`,
+                    `${USER_NAME}, even the darkest night will end and the sun will rise.`,
+                    `Your feelings are valid, ${USER_NAME}. Be gentle with yourself today.`
+                ],
+                gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)'
+            },
+            energetic: {
+                query: 'energetic dynamic action',
+                messages: [
+                    `Hey ${USER_NAME}, since you're feeling ⚡ energetic, let's conquer the day!`,
+                    `Your energy is electric, ${USER_NAME}! Channel it into something amazing.`,
+                    `${USER_NAME}, you're unstoppable today! Let's make things happen!`
+                ],
+                gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+            }
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTheme();
+            initializeMoodButtons();
+            loadLastMood();
+        });
+
+        // Theme Toggle
+        function initializeTheme() {
+            const themeToggle = document.getElementById('themeToggle');
+            const themeIcon = document.getElementById('themeIcon');
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            
+            document.body.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+            
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = document.body.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                document.body.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                updateThemeIcon(newTheme);
+            });
+        }
+
+        function updateThemeIcon(theme) {
+            const themeIcon = document.getElementById('themeIcon');
+            themeIcon.className = theme === 'dark' ? 'fas fa-moon' : 'fas fa-sun';
+        }
+
+        // Mood Buttons
+        function initializeMoodButtons() {
+            const moodButtons = document.querySelectorAll('.mood-btn');
+            
+            moodButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const mood = button.getAttribute('data-mood');
+                    selectMood(mood);
+                });
+            });
+        }
+
+        function selectMood(mood) {
+            // Update active button
+            document.querySelectorAll('.mood-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-mood="${mood}"]`).classList.add('active');
+            
+            // Save mood to localStorage
+            localStorage.setItem('selectedMood', mood);
+            
+            // Update UI
+            updateBackground(mood);
+            showPersonalMessage(mood);
+            loadQuote();
+            loadWeather();
+            
+            // Apply mood-specific gradient
+            const config = moodConfigs[mood];
+            document.documentElement.style.setProperty('--primary-gradient', config.gradient);
+        }
+
+        // Background Image
+        async function updateBackground(mood) {
+            const bgImage = document.getElementById('bgImage');
+            const config = moodConfigs[mood];
+            
+            // For demo purposes, using placeholder images
+            // In production, replace with actual Unsplash API calls
+            const imageUrl = `https://picsum.photos/seed/${mood}-${Date.now()}/1920/1080.jpg`;
+            
+            // Fade out
+            bgImage.style.opacity = '0';
+            
+            // Wait for fade out
+            setTimeout(() => {
+                bgImage.style.backgroundImage = `url(${imageUrl})`;
+                // Fade in
+                bgImage.style.opacity = '1';
+            }, 500);
+            
+            /* 
+            // Actual Unsplash API implementation (requires API key)
+            try {
+                const response = await fetch(`https://api.unsplash.com/photos/random?query=${config.query}&client_id=${UNSPLASH_ACCESS_KEY}`);
+                const data = await response.json();
+                bgImage.style.backgroundImage = `url(${data.urls.regular})`;
+            } catch (error) {
+                console.error('Error fetching Unsplash image:', error);
+                // Fallback to placeholder
+                bgImage.style.backgroundImage = `url(https://picsum.photos/seed/${mood}/1920/1080.jpg)`;
+            }
+            */
+        }
+
+        // Personal Message
+        function showPersonalMessage(mood) {
+            const messageSection = document.getElementById('personalMessage');
+            const messageText = document.getElementById('messageText');
+            const config = moodConfigs[mood];
+            
+            // Select random message
+            const randomMessage = config.messages[Math.floor(Math.random() * config.messages.length)];
+            messageText.textContent = randomMessage;
+            
+            // Show with animation
+            messageSection.style.display = 'block';
+            messageSection.classList.remove('fade-in');
+            void messageSection.offsetWidth; // Trigger reflow
+            messageSection.classList.add('fade-in');
+        }
+
+        // Quote
+        async function loadQuote() {
+            const quoteCard = document.getElementById('quoteCard');
+            const quoteContent = document.getElementById('quoteContent');
+            
+            // Show loading
+            quoteCard.style.display = 'block';
+            quoteContent.innerHTML = '<div class="loading-container"><div class="spinner"></div></div>';
+            
+            try {
+                const response = await fetch(ZEN_QUOTES_API);
+                const data = await response.json();
+                const quote = data[0];
+                
+                quoteContent.innerHTML = `
+                    <p class="quote-text">"${quote.q}"</p>
+                    <p class="quote-author">— ${quote.a}</p>
+                `;
+            } catch (error) {
+                console.error('Error fetching quote:', error);
+                // Fallback quote
+                quoteContent.innerHTML = `
+                    <p class="quote-text">"The only way to do great work is to love what you do."</p>
+                    <p class="quote-author">— Steve Jobs</p>
+                `;
+            }
+        }
+
+        // Weather
+        async function loadWeather() {
+            const weatherCard = document.getElementById('weatherCard');
+            const weatherContent = document.getElementById('weatherContent');
+            
+            // Show loading
+            weatherCard.style.display = 'block';
+            weatherContent.innerHTML = '<div class="loading-container"><div class="spinner"></div></div>';
+            
+            /* 
+            // Actual OpenWeather API implementation (requires API key)
+            try {
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${DEFAULT_CITY}&appid=${OPENWEATHER_API_KEY}&units=metric`);
+                const data = await response.json();
+                
+                const weatherIcon = getWeatherIcon(data.weather[0].main);
+                
+                weatherContent.innerHTML = `
+                    <div class="weather-info">
+                        <div class="city-badge">📍 ${data.name}, ${data.sys.country}</div>
+                        <div class="weather-icon">${weatherIcon}</div>
+                        <div class="weather-temp">${Math.round(data.main.temp)}°C</div>
+                        <div class="weather-desc">${data.weather[0].description}</div>
+                    </div>
+                    <div class="weather-info">
+                        <div class="weather-desc">Feels like: ${Math.round(data.main.feels_like)}°C</div>
+                        <div class="weather-desc">Humidity: ${data.main.humidity}%</div>
+                        <div class="weather-desc">Wind: ${data.wind.speed} m/s</div>
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error fetching weather:', error);
+                // Fallback weather data
+            */
+            
+            // Demo weather data for Karachi, Pakistan
+            setTimeout(() => {
+                // Simulate different weather conditions for Karachi
+                const karachiWeatherConditions = [
+                    { temp: 32, desc: "Partly Cloudy", icon: "⛅", humidity: 70, wind: 12, feels: 35 },
+                    { temp: 35, desc: "Sunny", icon: "☀️", humidity: 60, wind: 8, feels: 38 },
+                    { temp: 28, desc: "Light Rain", icon: "🌦️", humidity: 85, wind: 15, feels: 30 },
+                    { temp: 30, desc: "Clear Sky", icon: "🌤️", humidity: 65, wind: 10, feels: 33 }
+                ];
+                
+                // Select a random weather condition for variety
+                const randomWeather = karachiWeatherConditions[Math.floor(Math.random() * karachiWeatherConditions.length)];
+                
+                weatherContent.innerHTML = `
+                    <div class="weather-info">
+                        <div class="city-badge">📍 Karachi, Pakistan</div>
+                        <div class="weather-icon">${randomWeather.icon}</div>
+                        <div class="weather-temp">${randomWeather.temp}°C</div>
+                        <div class="weather-desc">${randomWeather.desc}</div>
+                    </div>
+                    <div class="weather-info">
+                        <div class="weather-desc">Feels like: ${randomWeather.feels}°C</div>
+                        <div class="weather-desc">Humidity: ${randomWeather.humidity}%</div>
+                        <div class="weather-desc">Wind: ${randomWeather.wind} km/h</div>
+                    </div>
+                `;
+            }, 1000);
+        }
+
+        function getWeatherIcon(weatherMain) {
+            const icons = {
+                'Clear': '☀️',
+                'Clouds': '☁️',
+                'Rain': '🌧️',
+                'Drizzle': '🌦️',
+                'Thunderstorm': '⛈️',
+                'Snow': '❄️',
+                'Mist': '🌫️',
+                'Fog': '🌫️'
+            };
+            return icons[weatherMain] || '🌤️';
+        }
+
+        // Load Last Mood
+        function loadLastMood() {
+            const lastMood = localStorage.getItem('selectedMood');
+            if (lastMood) {
+                selectMood(lastMood);
+            }
+        }
+    </script>
+</body>
+</html>
